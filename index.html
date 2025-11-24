@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PISQUAREHUB - Pi Squared Testnet Tracker</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="https://pisquared.network/favicon.ico"/>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>PISQUARE<span>HUB</span></h1>
+      <p>Paste your wallet to see your Pi Squared Testnet stats</p>
+    </header>
+
+    <div class="input-card">
+      <input type="text" id="walletInput" placeholder="0x..." />
+      <button id="checkBtn">Check My Stats</button>
+    </div>
+
+    <div id="loading" class="hidden">Loading your data...</div>
+
+    <div id="result" class="result-card hidden">
+      <div class="wallet">Wallet: <span id="addr">0x...</span></div>
+      
+      <div class="stats-grid">
+        <div class="stat">
+          <h3>Portal Points</h3>
+          <p id="points" class="big">0</p>
+        </div>
+        <div class="stat">
+          <h3>Transactions</h3>
+          <p id="txs" class="big">0</p>
+        </div>
+        <div class="stat">
+          <h3>Current Rank</h3>
+          <p id="rank" class="big">#--</p>
+        </div>
+        <div class="stat">
+          <h3>Network</h3>
+          <p>Pisquared Testnet</p>
+        </div>
+      </div>
+
+      <div class="explorer-links">
+        <a href="https://testnet.pisquared.network/address/" target="_blank" id="explorerLink">
+          View on Pi Squared Explorer
+        </a>
+      </div>
+
+      <div class="social">
+        <p>Made with love for Pi Squared OGs</p>
+        <a href="https://x.com/sammycrip" target="_blank">@sammycrip</a>
+      </div>
+    </div>
+
+    <footer>
+      <p>PISQUAREHUB — Your Pi Squared Testnet Dashboard • 2025</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
