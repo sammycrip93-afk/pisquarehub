@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PiSquaredHub – Official Community Hub</title>
+    <style>
+        body {
+            margin:0; font-family:Segoe UI,sans-serif;
+            background: linear-gradient(135deg, #4a148c, #7b1fa2);
+            color:white; min-height:100vh; padding:20px 30px;
+            text-align:center;
+        }
+        .logo {
+            width:120px; height:120px; background:#e040fb; border-radius:25px;
+            display:inline-block; margin:20px; box-shadow:0 0 50px #e040fb;
+            animation:spin 10s infinite linear, glow 3s infinite alternate;
+            position:relative;
+        }
+        .logo::before { content:"π²"; font-size:50px; position:absolute; top:50%; left:50%;
+            transform:translate(-50%,-50%); font-weight:bold; }
+        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes glow { 0%{box-shadow:0 0 50px #e040fb} 100%{box-shadow:0 0 80px #ff4081} }
+
+        h1 { font-size:3rem; margin:10px; }
+        .container { max-width:1400px; margin:20px auto; display:grid; grid-template-columns:1fr 1fr; gap:30px; }
+        @media (max-width:992px) { .container { grid-template-columns:1fr; } }
+        .card { background:rgba(255,255,255,0.15); backdrop-filter:blur(15px);
+            border-radius:20px; padding:30px; box-shadow:0 15px 40px rgba(0,0,0,0.4); }
+        input { width:100%; padding:18px; font-size:1.2rem; border:none; border-radius:15px;
+            background:rgba(255,255,255,0.2); color:white; margin:15px 0; }
+        button { background:#ff4081; color:white; border:none; padding:16px 32px;
+            border-radius:50px; font-size:1.2rem; cursor:pointer; margin:10px; }
+        button:hover { background:#f50057; transform:scale(1.05); }
+        .stat { font-size:1.4rem; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.3); }
+        .value { float:right; font-weight:bold; color:#ffeb3b; }
+        table { width:100%; border-collapse:collapse; margin-top:20px; font-size:1rem; }
+        th, td { padding:12px; text-align:left; }
+        th { background:rgba(255,255,255,0.2); position:sticky; top:0; }
+        tr:nth-child(even) { background:rgba(255,255,255,0.05); }
+        .you { background:#ffeb3b !important; color:black !important; font-weight:bold; }
+        .footer { margin-top:50px; }
+        .follow { background:black; }
+        a { color:#bb86fc; text-decoration:none; }
+        a:hover { text-decoration:underline; }
+    </style>
+</head>
+<body>
+
+    <div class="logo"></div>
+    <h1>PiSquaredHub</h1>
+    <p style="font-size:1.3rem;opacity:0.9;">FastSet & EVM Wallet Checker • Live Leaderboard</p>
+
+    <div class="container">
+        <!-- Left: Input -->
+        <div class="card">
+            <h2>Enter Your Wallet</h2>
+            <input type="text" id="wallet" placeholder="set1... or 0x...">
+            <button onclick="check()">Check Now</button>
+
+            <div id="stats" style="margin-top:30px;display:none;">
+                <h2>Your Stats</h2>
+                <div class="stat">Address <span class="value" id="addr">-</span></div>
+                <div class="stat" id="rankRow">Rank <span class="value" id="rank">-</span></div>
+                <div class="stat" id="pointsRow">Points <span class="value" id="points">-</span></div>
+                <div class="stat">Transactions <span class="value" id="txs">-</span></div>
+                <div class="stat" id="tpsRow">TPS <span class="value" style="color:#00e676" id="tps">-</span></div>
+                <div class="stat" id="ageRow">Wallet Age <span class="value" id="age">-</span></div>
+                <div class="stat">Last Active <span class="value" id="last">-</span></div>
+                <div class="stat" id="evmRow">Balance <span class="value" id="balance">-</span></div>
+                <div style="margin-top:20px;">
+                    <a id="explorerLink" href="#" target="_blank">
+                        <button>View All Transactions on Pi² Explorer</button>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Leaderboard -->
+        <div class="card">
+            <h2>Top 100 Leaderboard</h2>
+            <div style="max-height:70vh; overflow-y:auto;">
+                <table id="board">
+                    <thead><tr><th>Rank</th><th>Wallet</th><th>Points</th></tr></thead>
+                    <tbody><tr><td colspan="3">Loading...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <button class="follow" onclick="window.open('https://x.com/intent/follow?screen_name=sammycrip')">
+            Follow @sammycrip
+        </button>
+        <button class="follow" onclick="window.open('https://x.com/intent/follow?screen_name=RosuGrigore')">
+            Follow Founder
+        </button>
+        <button onclick="window.open('https://explorer.pi2.network/')">FastSet Explorer</button>
+    </div>
+
+    <script>
+        let currentWallet = '';
+        let data = [];
+
+        async function loadBoard() {
+            try {
+                const r = await fetch('https://portal.pi2.network/api/leaderboard');
+                data = await r.json();
+                const tbody = document.querySelector('#board tbody');
+                tbody.innerHTML = '';
+                data.slice(0,100).forEach(u => {
+                    const tr = document.createElement('tr');
+                    if (u.wallet.toLowerCase() === currentWallet.toLowerCase()) tr.classList.add('you');
+                    tr.innerHTML = `<td><strong>#${u.rank}</strong></td>
+                                   <td>${u.wallet.slice(0,12)}...${u.wallet.slice(-8)}</td>
+                                   <td><strong>${u.points.toLocaleString()}</strong></td>`;
+                    tbody.appendChild(tr);
+                });
+            } catch(e) {
+                document.querySelector('#board tbody').innerHTML = '<tr><td colspan="3">Leaderboard loading...</td></tr>';
+            }
+        }
+
+        async function check() {
+            currentWallet = document.getElementById('wallet').value.trim();
+            if (!currentWallet) return alert('Enter wallet');
+
+            document.getElementById('stats').style.display = 'block';
+            document.getElementById('addr').innerText = currentWallet.slice(0,14)+'...'+currentWallet.slice(-10);
+
+            // Hide all conditional rows
+            ['rankRow','pointsRow','tpsRow','ageRow','evmRow'].forEach(id => 
+                document.getElementById(id).style.display = 'none');
+
+            const link = document.getElementById('explorerLink');
+            link.href = `https://explorer.pi2.network/account/${currentWallet}`;
+            link.textContent = currentWallet.startsWith('set1') 
+                ? "View ALL Your Pi² Transactions" 
+                : "View This Wallet on Pi² Explorer";
+
+            if (currentWallet.startsWith('set1')) {
+                // FASTSET → Full stats
+                await loadBoard();
+                const user = data.find(u => u.wallet.toLowerCase() === currentWallet.toLowerCase());
+                if (user) {
+                    document.getElementById('rank').innerText = '#'+user.rank;
+                    document.getElementById('points').innerText = user.points.toLocaleString();
+                    ['rankRow','pointsRow'].forEach(id => document.getElementById(id).style.display = 'block');
+                }
+
+                const r = await fetch(`https://explorer.pi2.network/api/v1/accounts/${currentWallet}`);
+                const d = await r.json();
+                document.getElementById('txs').innerText = (d.transactionCount||0).toLocaleString();
+
+                if (d.firstActivity) {
+                    const first = new Date(d.firstActivity*1000);
+                    const days = Math.floor((Date.now()-first)/86400000);
+                    document.getElementById('age').innerText = days + ' days';
+                    document.getElementById('ageRow').style.display = 'block';
+
+                    const tps = (d.transactionCount / ((Date.now()-first)/1000)).toFixed(6);
+                    document.getElementById('tps').innerText = tps + ' tx/s';
+                    document.getElementById('tpsRow').style.display = 'block';
+                }
+                if (d.lastActivity) {
+                    const last = new Date(d.lastActivity*1000);
+                    const ago = (Date.now()-last)/1000;
+                    const text = ago<3600 ? Math.floor(ago/60)+' min ago' :
+                                ago<86400 ? Math.floor(ago/3600)+' hrs ago' :
+                                Math.floor(ago/86400)+' days ago';
+                    document.getElementById('last').innerText = text;
+                }
+            } 
+            else if (currentWallet.startsWith('0x') && currentWallet.length===42) {
+                // EVM → Only balance + explorer link
+                document.getElementById('evmRow').style.display = 'block';
+                try {
+                    const bal = await fetch('https://eth.llamarpc.com', {
+                        method:'POST', headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify({jsonrpc:"2.0",method:"eth_getBalance",params:[currentWallet,"latest"],id:1})
+                    }).then(r=>r.json());
+                    const eth = (parseInt(bal.result,16)/1e18).toFixed(4);
+                    document.getElementById('balance').innerText = eth + ' ETH (or equiv)';
+                } catch(e) { document.getElementById('balance').innerText = 'N/A'; }
+            }
+        }
+
+        loadBoard();
+        setInterval(loadBoard, 60000);
+    </script>
+</body>
+</html>
